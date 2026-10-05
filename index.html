@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Magic 8 Ball</title>
+<style>
+  :root {
+    --bg: #14121f;
+    --panel: #1f1c30;
+    --panel-2: #2a2640;
+    --text: #f1eefc;
+    --muted: #a39fbf;
+    --accent: #7c6cff;
+    --accent-2: #4dd4ac;
+    --danger: #ff6b81;
+    --window: #1b2a8f;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; max-width: 720px; margin: 0 auto;
+  }
+  header h1 { font-size: 1.2rem; margin: 0; }
+  nav { display: flex; gap: 6px; }
+  nav button { padding: 8px 12px; }
+  nav button.active { background: var(--accent); color: #fff; }
+  main { max-width: 720px; margin: 0 auto; padding: 0 16px 48px; }
+  section { display: none; }
+  section.active { display: block; }
+
+  button {
+    font: inherit; border: 0; border-radius: 10px; cursor: pointer;
+    background: var(--panel-2); color: var(--text); padding: 10px 14px;
+  }
+  button:hover { filter: brightness(1.15); }
+  button.primary { background: var(--accent); color: #fff; font-weight: 600; }
+  button.danger { background: transparent; color: var(--danger); }
+  input, textarea, select {
+    font: inherit; width: 100%; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid #3a3558; background: var(--panel); color: var(--text);
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  label { display: block; font-size: .85rem; color: var(--muted); margin: 14px 0 6px; }
+  .card { background: var(--panel); border-radius: var(--radius); padding: 16px; margin-top: 16px; }
+
+  /* Tags */
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag {
+    padding: 8px 12px; border-radius: 999px; background: var(--panel-2);
+    border: 1px solid transparent; font-size: .9rem;
+  }
+  .tag.selected { border-color: var(--accent); background: #352f63; }
+
+  /* Moods */
+  .moods { display: flex; gap: 8px; flex-wrap: wrap; }
+  .mood { font-size: 1.5rem; padding: 6px 10px; background: var(--panel-2); border: 2px solid transparent; }
+  .mood.selected { border-color: var(--accent-2); }
+  .mood-label { font-size: .8rem; color: var(--muted); margin-top: 6px; min-height: 1em; }
+
+  /* Ball */
+  .ball-wrap { display: flex; justify-content: center; margin: 24px 0 8px; }
+  .ball {
+    width: min(78vw, 300px); aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, #555 0%, #1a1a1a 35%, #000 70%);
+    box-shadow: 0 20px 50px rgba(0,0,0,.6), inset -10px -14px 30px rgba(255,255,255,.04);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; user-select: none; position: relative; border: 0; padding: 0;
+  }
+  .ball:hover { filter: none; }
+  .ball.shake { animation: shake .9s ease-in-out; }
+  @keyframes shake {
+    0%,100% { transform: translate(0,0) rotate(0); }
+    15% { transform: translate(-14px,4px) rotate(-8deg); }
+    30% { transform: translate(12px,-6px) rotate(7deg); }
+    45% { transform: translate(-10px,6px) rotate(-6deg); }
+    60% { transform: translate(8px,-4px) rotate(5deg); }
+    75% { transform: translate(-4px,2px) rotate(-2deg); }
+  }
+  .face {
+    width: 46%; aspect-ratio: 1; border-radius: 50%; background: #fff; color: #000;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: clamp(1.4rem, 9vw, 3.4rem); overflow: hidden;
+    padding: 6px; text-align: center; line-height: 1.05; word-break: break-word;
+  }
+  .face.small { font-size: clamp(.8rem, 4vw, 1.3rem); }
+  .window {
+    width: 52%; aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle, #0b1240 0%, #050826 80%);
+    display: none; align-items: center; justify-content: center;
+  }
+  .triangle {
+    width: 82%; aspect-ratio: 1.1; background: var(--window);
+    clip-path: polygon(50% 100%, 0 8%, 100% 8%);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 16% 18% 0; color: #cfe0ff; text-align: center;
+    font-size: clamp(.62rem, 2.8vw, .95rem); font-weight: 700; text-transform: uppercase;
+    line-height: 1.15; opacity: 0; transition: opacity .8s ease;
+  }
+  .triangle.show { opacity: 1; }
+  .ball.revealed .face { display: none; }
+  .ball.revealed .window { display: flex; }
+  .hint { text-align: center; color: var(--muted); font-size: .9rem; }
+
+  .result { text-align: center; }
+  .result .answer { font-size: 1.3rem; font-weight: 700; margin: 6px 0 12px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+  /* Journal */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 8px; }
+  .stat { background: var(--panel-2); border-radius: 10px; padding: 10px; text-align: center; }
+  .stat b { display: block; font-size: 1.3rem; }
+  .stat span { font-size: .78rem; color: var(--muted); }
+  .entry { background: var(--panel); border-radius: var(--radius); padding: 14px; margin-top: 12px; }
+  .entry-head { display: flex; justify-content: space-between; gap: 8px; font-size: .8rem; color: var(--muted); }
+  .entry h3 { margin: 6px 0; font-size: 1rem; }
+  .entry .ans { color: var(--accent-2); font-weight: 600; }
+  .entry .meta { font-size: .85rem; color: var(--muted); margin-top: 4px; }
+  .entry .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .entry .actions button { padding: 6px 10px; font-size: .85rem; }
+  .entry .actions button.on { background: var(--accent); color: #fff; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filters select { width: auto; flex: 1 1 140px; }
+  .empty { color: var(--muted); text-align: center; padding: 30px 0; }
+
+  /* Settings list editor */
+  .list-edit { display: flex; flex-direction: column; gap: 6px; }
+  .list-edit .item { display: flex; gap: 6px; align-items: center; }
+  .list-edit .item input { flex: 1; }
+  .list-edit .item select { width: 110px; }
+  .list-edit .item button { padding: 8px 10px; }
+  small.note { color: var(--muted); display: block; margin-top: 6px; }
+
+  @media (max-width: 480px) {
+    header { flex-direction: column; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="appTitle">🎱 Magic 8 Ball</h1>
+  <nav>
+    <button data-tab="ask" class="active">Ask</button>
+    <button data-tab="journal">Memory</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ASK -->
+  <section id="ask" class="active">
+    <div class="card">
+      <label style="margin-top:0">What's the decision about?</label>
+      <div class="tags" id="topicTags"></div>
+
+      <label for="question">Your question</label>
+      <input id="question" placeholder="Should I get a snack?" maxlength="200">
+
+      <label>How do you feel asking this?</label>
+      <div class="moods" id="moodPick"></div>
+      <div class="mood-label" id="moodLabel"></div>
+    </div>
+
+    <div class="ball-wrap">
+      <button class="ball" id="ball" aria-label="Shake the ball">
+        <div class="face" id="ballFace">8</div>
+        <div class="window"><div class="triangle" id="answerText"></div></div>
+      </button>
+    </div>
+    <p class="hint" id="hint">Tap the ball to ask</p>
+
+    <div class="card result" id="resultCard" hidden>
+      <div class="hint">The ball says</div>
+      <div class="answer" id="resultAnswer"></div>
+      <div class="hint" style="margin-bottom:10px">Saved to your memory. Will you do it?</div>
+      <div class="row">
+        <button data-did="yes">✅ I did it</button>
+        <button data-did="no">🙅 I didn't</button>
+        <button data-did="pending" class="primary">⏳ Decide later</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOURNAL -->
+  <section id="journal">
+    <div class="card">
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="card">
+      <div class="filters">
+        <select id="filterTopic"></select>
+        <select id="filterDid">
+          <option value="">Any outcome</option>
+          <option value="yes">Did it</option>
+          <option value="no">Didn't</option>
+          <option value="pending">Undecided</option>
+        </select>
+      </div>
+    </div>
+    <div id="entries"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings">
+    <div class="card">
+      <label for="ballName" style="margin-top:0">Name on the ball</label>
+      <input id="ballName" maxlength="14" placeholder="8">
+      <small class="note">Shown on the white circle of the ball and in the title.</small>
+    </div>
+
+    <div class="card">
+      <label style="margin-top:0">Decision tags</label>
+      <div class="list-edit" id="topicEditor"></div>
+      <button id="addTopic" style="margin-top:8px">+ Add tag</button>
+    </div>
+
+    <div class="card">
+      <label style="margin-top:0">Ball answers</label>
+      <div class="list-edit" id="answerEditor"></div>
+      <button id="addAnswer" style="margin-top:8px">+ Add answer</button>
+      <small class="note">The type (yes / maybe / no) is used for your memory stats.</small>
+    </div>
+
+    <div class="card">
+      <label style="margin-top:0">Your data</label>
+      <div class="row" style="justify-content:flex-start">
+        <button id="exportBtn">Export backup</button>
+        <button id="importBtn">Import backup</button>
+        <input type="file" id="importFile" accept="application/json" hidden>
+        <button id="resetSettings">Reset tags &amp; answers</button>
+        <button id="clearJournal" class="danger">Erase memory</button>
+      </div>
+      <small class="note">Everything is stored only on this device, in this browser.</small>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const STORE_KEY = "magic8ball.v1";
+
+  const MOODS = [
+    { emoji: "😌", label: "Calm" },
+    { emoji: "🙂", label: "Curious" },
+    { emoji: "😬", label: "Nervous" },
+    { emoji: "😰", label: "Anxious" },
+    { emoji: "🤩", label: "Excited" },
+    { emoji: "😩", label: "Tired" },
+    { emoji: "🤔", label: "Torn" },
+  ];
+
+  const DEFAULTS = {
+    ballName: "8",
+    topics: [
+      { name: "Snack", question: "Should I get a snack?" },
+      { name: "Talk to strangers", question: "Should I talk to a stranger?" },
+      { name: "Go out", question: "Should I go out today?" },
+      { name: "Something else", question: "" },
+    ],
+    answers: [
+      { text: "It is certain", type: "yes" },
+      { text: "Without a doubt", type: "yes" },
+      { text: "Yes, go for it", type: "yes" },
+      { text: "Signs point to yes", type: "yes" },
+      { text: "You deserve it", type: "yes" },
+      { text: "Be brave", type: "yes" },
+      { text: "Ask again later", type: "maybe" },
+      { text: "Trust your gut", type: "maybe" },
+      { text: "Cannot predict now", type: "maybe" },
+      { text: "Not right now", type: "no" },
+      { text: "Don't count on it", type: "no" },
+      { text: "My sources say no", type: "no" },
+    ],
+  };
+
+  // ---------- storage ----------
+  function normalize(data) {
+    return {
+      ballName: data.ballName ?? DEFAULTS.ballName,
+      topics: Array.isArray(data.topics) && data.topics.length ? data.topics : clone(DEFAULTS.topics),
+      answers: Array.isArray(data.answers) && data.answers.length ? data.answers : clone(DEFAULTS.answers),
+      journal: Array.isArray(data.journal) ? data.journal : [],
+    };
+  }
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) return normalize(JSON.parse(raw));
+    } catch (e) { /* storage unavailable or corrupt */ }
+    return { ...clone(DEFAULTS), journal: [] };
+  }
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function clone(x) { return JSON.parse(JSON.stringify(x)); }
+
+  let state = load();
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+  // ---------- tabs ----------
+  document.querySelectorAll("nav button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("active", b === btn));
+      document.querySelectorAll("main section").forEach((s) => s.classList.toggle("active", s.id === btn.dataset.tab));
+      if (btn.dataset.tab === "journal") renderJournal();
+      if (btn.dataset.tab === "settings") renderSettings();
+      if (btn.dataset.tab === "ask") renderAsk();
+    });
+  });
+
+  // ---------- ask ----------
+  let selectedTopic = null;
+  let selectedMood = null;
+  let lastEntryId = null;
+  let shaking = false;
+
+  function renderBallName() {
+    const name = state.ballName.trim() || "8";
+    const face = $("ballFace");
+    face.textContent = name;
+    face.classList.toggle("small", name.length > 3);
+    $("appTitle").textContent = `🎱 Magic ${name} Ball`;
+    document.title = `Magic ${name} Ball`;
+  }
+
+  function renderAsk() {
+    renderBallName();
+    if (selectedTopic != null && selectedTopic >= state.topics.length) selectedTopic = null;
+    $("topicTags").innerHTML = state.topics.map((t, i) =>
+      `<button class="tag ${i === selectedTopic ? "selected" : ""}" data-i="${i}">${esc(t.name)}</button>`
+    ).join("");
+    $("moodPick").innerHTML = MOODS.map((m, i) =>
+      `<button class="mood ${i === selectedMood ? "selected" : ""}" data-i="${i}" title="${m.label}">${m.emoji}</button>`
+    ).join("");
+    $("moodLabel").textContent = selectedMood != null ? MOODS[selectedMood].label : "";
+  }
+
+  $("topicTags").addEventListener("click", (e) => {
+    const b = e.target.closest(".tag"); if (!b) return;
+    const i = +b.dataset.i;
+    selectedTopic = selectedTopic === i ? null : i;
+    const q = selectedTopic != null ? state.topics[i].question : "";
+    if (q) $("question").value = q;
+    renderAsk();
+  });
+
+  $("moodPick").addEventListener("click", (e) => {
+    const b = e.target.closest(".mood"); if (!b) return;
+    const i = +b.dataset.i;
+    selectedMood = selectedMood === i ? null : i;
+    renderAsk();
+  });
+
+  $("ball").addEventListener("click", () => {
+    if (shaking) return;
+    const question = $("question").value.trim();
+    if (!question) { $("hint").textContent = "Type a question or pick a tag first ✍️"; $("question").focus(); return; }
+    if (!state.answers.length) { $("hint").textContent = "Add some answers in Settings first"; return; }
+
+    shaking = true;
+    const ball = $("ball"), tri = $("answerText");
+    ball.classList.remove("revealed"); tri.classList.remove("show");
+    $("resultCard").hidden = true;
+    $("hint").textContent = "Shaking…";
+    ball.classList.remove("shake"); void ball.offsetWidth; ball.classList.add("shake");
+
+    const answer = state.answers[Math.floor(Math.random() * state.answers.length)];
+
+    setTimeout(() => {
+      ball.classList.remove("shake");
+      ball.classList.add("revealed");
+      tri.textContent = answer.text;
+      requestAnimationFrame(() => tri.classList.add("show"));
+
+      const entry = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        date: new Date().toISOString(),
+        topic: selectedTopic != null ? state.topics[selectedTopic].name : "",
+        question,
+        mood: selectedMood != null ? MOODS[selectedMood].label : "",
+        moodEmoji: selectedMood != null ? MOODS[selectedMood].emoji : "",
+        answer: answer.text,
+        answerType: answer.type,
+        did: "pending",
+        note: "",
+      };
+      state.journal.unshift(entry);
+      lastEntryId = entry.id;
+      save();
+
+      $("resultAnswer").textContent = answer.text;
+      $("resultCard").hidden = false;
+      $("hint").textContent = "Tap again to ask again";
+      shaking = false;
+    }, 950);
+  });
+
+  $("resultCard").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-did]"); if (!b || !lastEntryId) return;
+    setDid(lastEntryId, b.dataset.did);
+    $("resultCard").hidden = true;
+    $("hint").textContent = b.dataset.did === "pending"
+      ? "You can mark it later in Memory"
+      : "Noted in your memory 📝";
+  });
+
+  function setDid(id, did) {
+    const en = state.journal.find((x) => x.id === id);
+    if (en) { en.did = did; save(); }
+  }
+
+  // ---------- journal ----------
+  const DID_LABEL = { yes: "✅ Did it", no: "🙅 Didn't", pending: "⏳ Undecided" };
+
+  function renderJournal() {
+    const j = state.journal;
+    const done = j.filter((e) => e.did === "yes").length;
+    const followed = j.filter((e) =>
+      (e.answerType === "yes" && e.did === "yes") || (e.answerType === "no" && e.did === "no")).length;
+    const decided = j.filter((e) => e.did !== "pending" && e.answerType !== "maybe").length;
+    const moodCounts = {};
+    j.forEach((e) => { if (e.mood) moodCounts[e.moodEmoji + " " + e.mood] = (moodCounts[e.moodEmoji + " " + e.mood] || 0) + 1; });
+    const topMood = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0];
+
+    $("stats").innerHTML = `
+      <div class="stat"><b>${j.length}</b><span>Questions asked</span></div>
+      <div class="stat"><b>${done}</b><span>Things done</span></div>
+      <div class="stat"><b>${decided ? Math.round((followed / decided) * 100) + "%" : "–"}</b><span>Followed the ball</span></div>
+      <div class="stat"><b>${topMood ? esc(topMood[0]) : "–"}</b><span>Most common feeling</span></div>`;
+
+    const topics = [...new Set(j.map((e) => e.topic).filter(Boolean))];
+    const ft = $("filterTopic"), cur = ft.value;
+    ft.innerHTML = `<option value="">All tags</option>` +
+      topics.map((t) => `<option ${t === cur ? "selected" : ""}>${esc(t)}</option>`).join("");
+
+    const fTopic = ft.value, fDid = $("filterDid").value;
+    const list = j.filter((e) => (!fTopic || e.topic === fTopic) && (!fDid || e.did === fDid));
+
+    if (!list.length) {
+      $("entries").innerHTML = `<div class="empty">${j.length ? "Nothing matches these filters." : "No memories yet. Go ask the ball something!"}</div>`;
+      return;
+    }
+
+    $("entries").innerHTML = list.map((e) => {
+      const d = new Date(e.date);
+      return `
+      <div class="entry" data-id="${e.id}">
+        <div class="entry-head">
+          <span>${d.toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" })}
+            · ${d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}</span>
+          <span>${e.topic ? esc(e.topic) : ""}</span>
+        </div>
+        <h3>${esc(e.question)}</h3>
+        <div>🎱 <span class="ans">${esc(e.answer)}</span></div>
+        <div class="meta">Feeling when asking: ${e.mood ? e.moodEmoji + " " + esc(e.mood) : "not recorded"}</div>
+        <div class="actions">
+          ${["yes", "no", "pending"].map((k) =>
+            `<button data-act="did" data-v="${k}" class="${e.did === k ? "on" : ""}">${DID_LABEL[k]}</button>`).join("")}
+          <button data-act="delete" class="danger">Delete</button>
+        </div>
+        <label>Notes — how did it go?</label>
+        <textarea data-act="note" placeholder="e.g. Got a croissant, felt great">${esc(e.note || "")}</textarea>
+      </div>`;
+    }).join("");
+  }
+
+  $("filterTopic").addEventListener("change", renderJournal);
+  $("filterDid").addEventListener("change", renderJournal);
+
+  $("entries").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-act]"); if (!b) return;
+    const id = b.closest(".entry").dataset.id;
+    if (b.dataset.act === "did") { setDid(id, b.dataset.v); renderJournal(); }
+    if (b.dataset.act === "delete" && confirm("Delete this memory?")) {
+      state.journal = state.journal.filter((x) => x.id !== id); save(); renderJournal();
+    }
+  });
+  $("entries").addEventListener("input", (e) => {
+    if (e.target.dataset.act !== "note") return;
+    const en = state.journal.find((x) => x.id === e.target.closest(".entry").dataset.id);
+    if (en) { en.note = e.target.value; save(); }
+  });
+
+  // ---------- settings ----------
+  function renderSettings() {
+    $("ballName").value = state.ballName;
+
+    $("topicEditor").innerHTML = state.topics.map((t, i) => `
+      <div class="item" data-i="${i}">
+        <input data-f="name" value="${esc(t.name)}" placeholder="Tag name" maxlength="30">
+        <input data-f="question" value="${esc(t.question)}" placeholder="Question it fills in (optional)" maxlength="200">
+        <button data-act="del" title="Remove">✕</button>
+      </div>`).join("");
+
+    $("answerEditor").innerHTML = state.answers.map((a, i) => `
+      <div class="item" data-i="${i}">
+        <input data-f="text" value="${esc(a.text)}" placeholder="Answer" maxlength="40">
+        <select data-f="type">
+          ${["yes", "maybe", "no"].map((t) => `<option ${a.type === t ? "selected" : ""}>${t}</option>`).join("")}
+        </select>
+        <button data-act="del" title="Remove">✕</button>
+      </div>`).join("");
+  }
+
+  $("ballName").addEventListener("input", (e) => { state.ballName = e.target.value; save(); renderBallName(); });
+
+  function bindEditor(editorId, key) {
+    const ed = $(editorId);
+    const update = (e) => {
+      const f = e.target.dataset.f; if (!f) return;
+      const i = +e.target.closest(".item").dataset.i;
+      state[key][i][f] = e.target.value; save();
+    };
+    ed.addEventListener("input", update);
+    ed.addEventListener("change", update);
+    ed.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-act=del]"); if (!b) return;
+      state[key].splice(+b.closest(".item").dataset.i, 1); save(); renderSettings();
+    });
+  }
+  bindEditor("topicEditor", "topics");
+  bindEditor("answerEditor", "answers");
+
+  $("addTopic").addEventListener("click", () => {
+    state.topics.push({ name: "New tag", question: "" }); save(); renderSettings();
+    const inputs = $("topicEditor").querySelectorAll("[data-f=name]"); inputs[inputs.length - 1].select();
+  });
+  $("addAnswer").addEventListener("click", () => {
+    state.answers.push({ text: "New answer", type: "maybe" }); save(); renderSettings();
+    const inputs = $("answerEditor").querySelectorAll("[data-f=text]"); inputs[inputs.length - 1].select();
+  });
+
+  $("resetSettings").addEventListener("click", () => {
+    if (!confirm("Reset ball name, tags and answers to defaults? Your memory is kept.")) return;
+    Object.assign(state, clone({ ballName: DEFAULTS.ballName, topics: DEFAULTS.topics, answers: DEFAULTS.answers }));
+    save(); renderSettings(); renderBallName();
+  });
+  $("clearJournal").addEventListener("click", () => {
+    if (!confirm("Erase ALL memories? This can't be undone (export a backup first!).")) return;
+    state.journal = []; save(); renderJournal();
+  });
+
+  $("exportBtn").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `magic-8-ball-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  $("importBtn").addEventListener("click", () => $("importFile").click());
+  $("importFile").addEventListener("change", async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      if (!Array.isArray(data.journal)) throw new Error("bad file");
+      if (!confirm(`Import ${data.journal.length} memories? This replaces your current data.`)) return;
+      state = normalize(data); save(); renderSettings(); renderBallName();
+      alert("Backup imported!");
+    } catch (err) {
+      alert("That doesn't look like a Magic 8 Ball backup file.");
+    } finally { e.target.value = ""; }
+  });
+
+  renderAsk();
+})();
+</script>
+</body>
+</html>

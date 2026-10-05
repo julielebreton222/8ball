@@ -2,78 +2,164 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Magic 8 Ball</title>
+<meta name="theme-color" content="#c38bff">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="8 Ball">
 <style>
   :root {
-    --bg: #14121f;
-    --panel: #1f1c30;
-    --panel-2: #2a2640;
-    --text: #f1eefc;
-    --muted: #a39fbf;
-    --accent: #7c6cff;
-    --accent-2: #4dd4ac;
-    --danger: #ff6b81;
-    --window: #1b2a8f;
-    --radius: 14px;
+    --ink: #2b1d4a;
+    --ink-soft: #6b5a8e;
+    --pink: #ff5fb8;
+    --pink-2: #ff9ad5;
+    --blue: #4fb6ff;
+    --lilac: #b49cff;
+    --panel: rgba(255, 255, 255, .74);
+    --line: #b9a6ff;
+    --danger: #e0336f;
+    --font: "Trebuchet MS", Verdana, Tahoma, "Segoe UI", sans-serif;
+    --font-display: "Arial Black", "Arial Rounded MT Bold", Impact, "Helvetica Neue", sans-serif;
   }
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    font-family: var(--font);
+    color: var(--ink);
     min-height: 100vh;
+    background-color: #e9dcff;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg fill='%23ffffff'%3E%3Cpath d='M30 18 Q30 30 42 30 Q30 30 30 42 Q30 30 18 30 Q30 30 30 18Z' opacity='.9'/%3E%3Cpath d='M118 92 Q118 100 126 100 Q118 100 118 108 Q118 100 110 100 Q118 100 118 92Z' opacity='.8'/%3E%3Ccircle cx='80' cy='140' r='2' opacity='.8'/%3E%3Ccircle cx='140' cy='30' r='1.5' opacity='.9'/%3E%3Ccircle cx='60' cy='76' r='1.2' opacity='.7'/%3E%3C/g%3E%3C/svg%3E"),
+      linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px),
+      linear-gradient(160deg, #ffd1f0 0%, #e3d4ff 45%, #c4eaff 100%);
+    background-size: 160px 160px, 24px 24px, 24px 24px, 100% 100%;
+    background-attachment: fixed;
   }
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 16px; max-width: 720px; margin: 0 auto;
+
+  header { max-width: 720px; margin: 0 auto; padding: 18px 16px 6px; text-align: center; }
+  .logo {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 9vw, 2.8rem);
+    letter-spacing: .02em; margin: 0; line-height: 1.05;
+    background: linear-gradient(180deg, #ffffff 0%, #e4e0ff 30%, #8f86b8 50%, #5d5488 52%, #d9d4ff 80%, #ffffff 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    -webkit-text-stroke: 1px #6a4bb0;
+    filter: drop-shadow(0 3px 0 var(--pink)) drop-shadow(0 6px 10px rgba(120, 60, 200, .35));
+    word-break: break-word;
   }
-  header h1 { font-size: 1.2rem; margin: 0; }
-  nav { display: flex; gap: 6px; }
-  nav button { padding: 8px 12px; }
-  nav button.active { background: var(--accent); color: #fff; }
-  main { max-width: 720px; margin: 0 auto; padding: 0 16px 48px; }
+  .tagline { font-size: .8rem; letter-spacing: .3em; text-transform: uppercase; color: var(--ink-soft); margin: 8px 0 12px; }
+  nav { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+  main { max-width: 720px; margin: 0 auto; padding: 8px 16px 56px; }
   section { display: none; }
   section.active { display: block; }
 
-  button {
-    font: inherit; border: 0; border-radius: 10px; cursor: pointer;
-    background: var(--panel-2); color: var(--text); padding: 10px 14px;
+  /* Retro windows */
+  .win {
+    background: var(--panel);
+    border: 2px solid #fff;
+    border-radius: 18px;
+    box-shadow: 0 0 0 2px var(--line), 0 10px 28px rgba(120, 80, 200, .22);
+    margin-top: 18px; overflow: hidden;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   }
-  button:hover { filter: brightness(1.15); }
-  button.primary { background: var(--accent); color: #fff; font-weight: 600; }
-  button.danger { background: transparent; color: var(--danger); }
+  .win-title {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 6px 12px;
+    background: linear-gradient(180deg, #ffb3df 0%, #d59bff 48%, #a98bff 52%, #8fc4ff 100%);
+    color: #fff; font-weight: bold; font-size: .85rem; letter-spacing: .05em;
+    text-shadow: 0 1px 0 #7a3fb0;
+    border-bottom: 2px solid #fff;
+  }
+  .win-dots { display: flex; gap: 5px; }
+  .win-dots i {
+    width: 11px; height: 11px; border-radius: 50%; display: block;
+    background: radial-gradient(circle at 35% 30%, #fff 0 20%, #ffd6ef 40%, #ff7ac6 100%);
+    box-shadow: 0 0 0 1px rgba(122, 63, 176, .5);
+  }
+  .win-dots i:nth-child(2) { background: radial-gradient(circle at 35% 30%, #fff 0 20%, #d9f3ff 40%, #63c1ff 100%); }
+  .win-dots i:nth-child(3) { background: radial-gradient(circle at 35% 30%, #fff 0 20%, #eae2ff 40%, #a98bff 100%); }
+  .win-body { padding: 14px 16px 16px; }
+
+  /* Buttons */
+  button {
+    font: inherit; cursor: pointer; color: var(--ink);
+    border-radius: 999px; padding: 9px 16px;
+    border: 1px solid #a9a3c9;
+    background: linear-gradient(180deg, #ffffff 0%, #eeeef8 48%, #d7d6ea 52%, #f6f6fd 100%);
+    box-shadow: inset 0 1px 0 #fff, 0 2px 4px rgba(80, 60, 140, .18);
+  }
+  button:hover { filter: brightness(1.05) saturate(1.1); }
+  button:active { transform: translateY(1px); }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 3px solid var(--pink); outline-offset: 2px;
+  }
+  .gel, nav button.active, .tag.selected, .entry .actions button.on {
+    color: #fff; text-shadow: 0 1px 1px rgba(20, 60, 140, .55);
+    border-color: #2c7fd0;
+    background: linear-gradient(180deg, #c9ecff 0%, #6cc4ff 46%, #3a9bf0 52%, #86d6ff 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 2px 6px rgba(40, 100, 200, .35);
+  }
+  .gel.pink, .tag.selected {
+    border-color: #d23d93; text-shadow: 0 1px 1px rgba(140, 20, 90, .5);
+    background: linear-gradient(180deg, #ffd3ee 0%, #ff8fcf 46%, #ff4fae 52%, #ffa3dc 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 2px 6px rgba(210, 60, 150, .35);
+  }
+  button.danger { color: var(--danger); }
+  button.small { padding: 6px 12px; font-size: .85rem; }
+
   input, textarea, select {
-    font: inherit; width: 100%; padding: 10px 12px; border-radius: 10px;
-    border: 1px solid #3a3558; background: var(--panel); color: var(--text);
+    font: inherit; color: var(--ink); width: 100%;
+    padding: 10px 12px; border-radius: 12px;
+    border: 2px solid #d6c9ff; background: #fff;
+    box-shadow: inset 0 2px 3px rgba(120, 80, 200, .12);
   }
   textarea { resize: vertical; min-height: 60px; }
-  label { display: block; font-size: .85rem; color: var(--muted); margin: 14px 0 6px; }
-  .card { background: var(--panel); border-radius: var(--radius); padding: 16px; margin-top: 16px; }
+  input[type=range] { padding: 0; border: 0; box-shadow: none; background: transparent; accent-color: var(--pink); }
+  input[type=checkbox] { width: auto; accent-color: var(--pink); transform: scale(1.3); margin: 0 8px 0 2px; }
+  label, .label { display: block; font-size: .78rem; font-weight: bold; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); margin: 14px 0 6px; }
+  .label:first-child, label:first-child { margin-top: 0; }
+  small.note { color: var(--ink-soft); display: block; margin-top: 8px; font-size: .82rem; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .center { justify-content: center; text-align: center; }
 
   /* Tags */
   .tags { display: flex; flex-wrap: wrap; gap: 8px; }
-  .tag {
-    padding: 8px 12px; border-radius: 999px; background: var(--panel-2);
-    border: 1px solid transparent; font-size: .9rem;
-  }
-  .tag.selected { border-color: var(--accent); background: #352f63; }
+  .lean-hint { font-size: .85rem; color: var(--ink-soft); margin-top: 10px; min-height: 1.2em; font-style: italic; }
 
-  /* Moods */
-  .moods { display: flex; gap: 8px; flex-wrap: wrap; }
-  .mood { font-size: 1.5rem; padding: 6px 10px; background: var(--panel-2); border: 2px solid transparent; }
-  .mood.selected { border-color: var(--accent-2); }
-  .mood-label { font-size: .8rem; color: var(--muted); margin-top: 6px; min-height: 1em; }
+  /* Feelings */
+  .feelings { display: flex; gap: 10px; flex-wrap: wrap; }
+  .feel-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 6px 6px 4px; width: 74px; border-radius: 16px; font-size: .72rem;
+    background: rgba(255, 255, 255, .6); border: 2px solid transparent; box-shadow: none;
+  }
+  .feel-btn.selected { border-color: var(--pink); background: #fff; box-shadow: 0 0 0 3px rgba(255, 95, 184, .25), 0 0 14px rgba(255, 95, 184, .5); }
+  .feel-btn.add { justify-content: center; color: var(--ink-soft); border: 2px dashed var(--line); min-height: 76px; }
+  .feel-btn span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .face-svg { display: block; flex-shrink: 0; }
 
   /* Ball */
-  .ball-wrap { display: flex; justify-content: center; margin: 24px 0 8px; }
+  .stage { position: relative; display: flex; justify-content: center; margin: 26px 0 8px; }
   .ball {
-    width: min(78vw, 300px); aspect-ratio: 1; border-radius: 50%;
-    background: radial-gradient(circle at 32% 28%, #555 0%, #1a1a1a 35%, #000 70%);
-    box-shadow: 0 20px 50px rgba(0,0,0,.6), inset -10px -14px 30px rgba(255,255,255,.04);
+    width: min(76vw, 300px); aspect-ratio: 1; border-radius: 50%; padding: 0;
+    background: radial-gradient(circle at 32% 26%, #6a6a7a 0%, #1d1a2a 34%, #050409 70%);
+    border: 0;
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, .55), 0 0 0 7px rgba(185, 166, 255, .7),
+      0 0 40px rgba(255, 120, 210, .65), 0 0 90px rgba(120, 180, 255, .55), 0 24px 40px rgba(40, 20, 80, .45);
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; user-select: none; position: relative; border: 0; padding: 0;
+    position: relative; user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .ball::after {
+    content: ""; position: absolute; left: 18%; top: 9%; width: 38%; height: 20%;
+    border-radius: 50%; transform: rotate(-24deg);
+    background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0));
+    pointer-events: none;
   }
   .ball:hover { filter: none; }
   .ball.shake { animation: shake .9s ease-in-out; }
@@ -88,65 +174,88 @@
   .face {
     width: 46%; aspect-ratio: 1; border-radius: 50%; background: #fff; color: #000;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: clamp(1.4rem, 9vw, 3.4rem); overflow: hidden;
-    padding: 6px; text-align: center; line-height: 1.05; word-break: break-word;
+    font-family: var(--font-display); font-size: clamp(1.4rem, 9vw, 3.4rem);
+    overflow: hidden; padding: 6px; text-align: center; line-height: 1.05; word-break: break-word;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,.15);
   }
   .face.small { font-size: clamp(.8rem, 4vw, 1.3rem); }
   .window {
     width: 52%; aspect-ratio: 1; border-radius: 50%;
-    background: radial-gradient(circle, #0b1240 0%, #050826 80%);
+    background: radial-gradient(circle, #10186a 0%, #050826 80%);
     display: none; align-items: center; justify-content: center;
+    box-shadow: inset 0 0 18px rgba(120, 180, 255, .4);
   }
   .triangle {
-    width: 82%; aspect-ratio: 1.1; background: var(--window);
+    width: 82%; aspect-ratio: 1.1; background: linear-gradient(180deg, #2a46d6, #1b2a8f);
     clip-path: polygon(50% 100%, 0 8%, 100% 8%);
     display: flex; align-items: flex-start; justify-content: center;
-    padding: 16% 18% 0; color: #cfe0ff; text-align: center;
-    font-size: clamp(.62rem, 2.8vw, .95rem); font-weight: 700; text-transform: uppercase;
+    padding: 16% 18% 0; color: #dff0ff; text-align: center;
+    font-size: clamp(.62rem, 2.8vw, .95rem); font-weight: bold; text-transform: uppercase;
     line-height: 1.15; opacity: 0; transition: opacity .8s ease;
+    text-shadow: 0 0 6px rgba(160, 210, 255, .9);
   }
   .triangle.show { opacity: 1; }
   .ball.revealed .face { display: none; }
   .ball.revealed .window { display: flex; }
-  .hint { text-align: center; color: var(--muted); font-size: .9rem; }
-
-  .result { text-align: center; }
-  .result .answer { font-size: 1.3rem; font-weight: 700; margin: 6px 0 12px; }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .sparkle { position: absolute; pointer-events: none; animation: twinkle 2.4s ease-in-out infinite; }
+  .sparkle.s1 { top: -6px; left: 12%; width: 34px; }
+  .sparkle.s2 { top: 30%; right: 6%; width: 22px; animation-delay: .8s; }
+  .sparkle.s3 { bottom: 4%; left: 8%; width: 18px; animation-delay: 1.5s; }
+  @keyframes twinkle { 0%,100% { opacity: .35; transform: scale(.8) rotate(0); } 50% { opacity: 1; transform: scale(1.1) rotate(20deg); } }
+  .hint { text-align: center; color: var(--ink-soft); font-size: .9rem; margin: 12px 0 0; }
+  .result .answer { font-family: var(--font-display); font-size: 1.4rem; margin: 6px 0 12px; text-align: center; color: #3a2a8a; }
 
   /* Journal */
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 8px; }
-  .stat { background: var(--panel-2); border-radius: 10px; padding: 10px; text-align: center; }
-  .stat b { display: block; font-size: 1.3rem; }
-  .stat span { font-size: .78rem; color: var(--muted); }
-  .entry { background: var(--panel); border-radius: var(--radius); padding: 14px; margin-top: 12px; }
-  .entry-head { display: flex; justify-content: space-between; gap: 8px; font-size: .8rem; color: var(--muted); }
-  .entry h3 { margin: 6px 0; font-size: 1rem; }
-  .entry .ans { color: var(--accent-2); font-weight: 600; }
-  .entry .meta { font-size: .85rem; color: var(--muted); margin-top: 4px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .stat { background: #fff; border-radius: 14px; padding: 10px; text-align: center; border: 2px solid #e7ddff; }
+  .stat b { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 1.3rem; font-family: var(--font-display); color: #3a2a8a; min-height: 34px; }
+  .stat span { font-size: .75rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; }
+  .entry-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .entry h3 { margin: 4px 0 6px; font-size: 1.05rem; }
+  .entry .ans { color: #2c7fd0; font-weight: bold; }
+  .entry .feel { display: flex; align-items: center; gap: 8px; font-size: .88rem; color: var(--ink-soft); margin-top: 6px; }
   .entry .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-  .entry .actions button { padding: 6px 10px; font-size: .85rem; }
-  .entry .actions button.on { background: var(--accent); color: #fff; }
   .filters { display: flex; gap: 8px; flex-wrap: wrap; }
   .filters select { width: auto; flex: 1 1 140px; }
-  .empty { color: var(--muted); text-align: center; padding: 30px 0; }
+  .empty { color: var(--ink-soft); text-align: center; padding: 30px 0; }
+  .chip { flex-shrink: 0; margin-top: 6px; font-size: .72rem; padding: 2px 10px; border-radius: 999px; background: #ffe3f4; color: #b0307a; font-weight: bold; white-space: nowrap; }
 
-  /* Settings list editor */
-  .list-edit { display: flex; flex-direction: column; gap: 6px; }
+  /* Settings */
+  .list-edit { display: flex; flex-direction: column; gap: 10px; }
   .list-edit .item { display: flex; gap: 6px; align-items: center; }
-  .list-edit .item input { flex: 1; }
-  .list-edit .item select { width: 110px; }
-  .list-edit .item button { padding: 8px 10px; }
-  small.note { color: var(--muted); display: block; margin-top: 6px; }
+  .list-edit .item input { flex: 1; min-width: 0; }
+  .list-edit .item select { width: 100px; flex-shrink: 0; }
+  .tag-item { background: #fff; border: 2px solid #ece4ff; border-radius: 14px; padding: 10px; }
+  .tag-item .item + .item { margin-top: 8px; }
+  .lean { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: .82rem; color: var(--ink-soft); }
+  .lean input { flex: 1; }
+  .lean output { min-width: 128px; text-align: right; font-weight: bold; color: var(--ink); }
+  .switch { display: flex; align-items: center; padding: 8px 0; font-size: .95rem; cursor: pointer; }
+  .feel-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .editor { background: #fff; border: 2px solid #ece4ff; border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+  .editor-top { display: flex; gap: 14px; align-items: center; }
+  .editor-top > div { flex: 1; min-width: 0; }
+  .opts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .opt { padding: 4px; border-radius: 14px; background: #faf7ff; border: 2px solid transparent; box-shadow: none; line-height: 0; }
+  .opt.selected { border-color: var(--pink); background: #fff0f8; }
+  .swatch { width: 32px; height: 32px; padding: 0; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px #d6c9ff; }
+  .swatch.selected { box-shadow: 0 0 0 3px var(--pink); }
+  input[type=color] { width: 40px; height: 34px; padding: 2px; border-radius: 10px; }
+  .status { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; }
+  .status i { width: 10px; height: 10px; border-radius: 50%; background: #c0b8d8; display: inline-block; }
+  .status.on i { background: #3fd68f; box-shadow: 0 0 8px #3fd68f; }
 
-  @media (max-width: 480px) {
-    header { flex-direction: column; gap: 10px; }
+  footer { text-align: center; font-size: .72rem; letter-spacing: .3em; color: var(--ink-soft); padding-bottom: 24px; text-transform: uppercase; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ball.shake, .sparkle { animation: none; }
   }
 </style>
 </head>
 <body>
 <header>
-  <h1 id="appTitle">🎱 Magic 8 Ball</h1>
+  <h1 class="logo" id="appTitle">Magic 8 Ball</h1>
+  <p class="tagline">ask &middot; shake &middot; remember</p>
   <nav>
     <button data-tab="ask" class="active">Ask</button>
     <button data-tab="journal">Memory</button>
@@ -157,19 +266,32 @@
 <main>
   <!-- ASK -->
   <section id="ask" class="active">
-    <div class="card">
-      <label style="margin-top:0">What's the decision about?</label>
-      <div class="tags" id="topicTags"></div>
-
-      <label for="question">Your question</label>
-      <input id="question" placeholder="Should I get a snack?" maxlength="200">
-
-      <label>How do you feel asking this?</label>
-      <div class="moods" id="moodPick"></div>
-      <div class="mood-label" id="moodLabel"></div>
+    <div class="win" id="topicWin">
+      <div class="win-title"><span>what's it about?</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+      <div class="win-body">
+        <div class="tags" id="topicTags"></div>
+        <div class="lean-hint" id="leanHint"></div>
+      </div>
     </div>
 
-    <div class="ball-wrap">
+    <div class="win">
+      <div class="win-title"><span>your question</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+      <div class="win-body">
+        <input id="question" placeholder="Should I talk to someone new today?" maxlength="200" aria-label="Your question">
+      </div>
+    </div>
+
+    <div class="win" id="feelWin">
+      <div class="win-title"><span>how do you feel asking?</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+      <div class="win-body">
+        <div class="feelings" id="feelPick"></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <svg class="sparkle s1" viewBox="0 0 40 40"><path d="M20 0 Q20 20 40 20 Q20 20 20 40 Q20 20 0 20 Q20 20 20 0Z" fill="#fff"/></svg>
+      <svg class="sparkle s2" viewBox="0 0 40 40"><path d="M20 0 Q20 20 40 20 Q20 20 20 40 Q20 20 0 20 Q20 20 20 0Z" fill="#ff9ad5"/></svg>
+      <svg class="sparkle s3" viewBox="0 0 40 40"><path d="M20 0 Q20 20 40 20 Q20 20 20 40 Q20 20 0 20 Q20 20 20 0Z" fill="#8fd3ff"/></svg>
       <button class="ball" id="ball" aria-label="Shake the ball">
         <div class="face" id="ballFace">8</div>
         <div class="window"><div class="triangle" id="answerText"></div></div>
@@ -177,32 +299,38 @@
     </div>
     <p class="hint" id="hint">Tap the ball to ask</p>
 
-    <div class="card result" id="resultCard" hidden>
-      <div class="hint">The ball says</div>
-      <div class="answer" id="resultAnswer"></div>
-      <div class="hint" style="margin-bottom:10px">Saved to your memory. Will you do it?</div>
-      <div class="row">
-        <button data-did="yes">✅ I did it</button>
-        <button data-did="no">🙅 I didn't</button>
-        <button data-did="pending" class="primary">⏳ Decide later</button>
+    <div class="win result" id="resultCard" hidden>
+      <div class="win-title"><span>the ball has spoken</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+      <div class="win-body">
+        <div class="answer" id="resultAnswer"></div>
+        <p class="hint" style="margin:0 0 12px">Saved to your memory. Will you do it?</p>
+        <div class="row center">
+          <button class="gel" data-did="yes">I did it</button>
+          <button data-did="no">I didn't</button>
+          <button class="gel pink" data-did="pending">Decide later</button>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- JOURNAL -->
   <section id="journal">
-    <div class="card">
-      <div class="stats" id="stats"></div>
+    <div class="win">
+      <div class="win-title"><span>my stats</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+      <div class="win-body"><div class="stats" id="stats"></div></div>
     </div>
-    <div class="card">
-      <div class="filters">
-        <select id="filterTopic"></select>
-        <select id="filterDid">
-          <option value="">Any outcome</option>
-          <option value="yes">Did it</option>
-          <option value="no">Didn't</option>
-          <option value="pending">Undecided</option>
-        </select>
+    <div class="win">
+      <div class="win-title"><span>filter</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+      <div class="win-body">
+        <div class="filters">
+          <select id="filterTopic" aria-label="Filter by tag"></select>
+          <select id="filterDid" aria-label="Filter by outcome">
+            <option value="">Any outcome</option>
+            <option value="yes">Did it</option>
+            <option value="no">Didn't</option>
+            <option value="pending">Undecided</option>
+          </select>
+        </div>
       </div>
     </div>
     <div id="entries"></div>
@@ -210,84 +338,200 @@
 
   <!-- SETTINGS -->
   <section id="settings">
-    <div class="card">
-      <label for="ballName" style="margin-top:0">Name on the ball</label>
-      <input id="ballName" maxlength="14" placeholder="8">
-      <small class="note">Shown on the white circle of the ball and in the title.</small>
-    </div>
-
-    <div class="card">
-      <label style="margin-top:0">Decision tags</label>
-      <div class="list-edit" id="topicEditor"></div>
-      <button id="addTopic" style="margin-top:8px">+ Add tag</button>
-    </div>
-
-    <div class="card">
-      <label style="margin-top:0">Ball answers</label>
-      <div class="list-edit" id="answerEditor"></div>
-      <button id="addAnswer" style="margin-top:8px">+ Add answer</button>
-      <small class="note">The type (yes / maybe / no) is used for your memory stats.</small>
-    </div>
-
-    <div class="card">
-      <label style="margin-top:0">Your data</label>
-      <div class="row" style="justify-content:flex-start">
-        <button id="exportBtn">Export backup</button>
-        <button id="importBtn">Import backup</button>
-        <input type="file" id="importFile" accept="application/json" hidden>
-        <button id="resetSettings">Reset tags &amp; answers</button>
-        <button id="clearJournal" class="danger">Erase memory</button>
+    <div class="win">
+      <div class="win-title"><span>layout</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+      <div class="win-body">
+        <div class="row" style="margin-bottom:6px">
+          <button class="small" id="presetSimple">Simple</button>
+          <button class="small" id="presetFull">Full</button>
+        </div>
+        <label class="switch"><input type="checkbox" id="optTopics"> Show "what's it about?" tags</label>
+        <label class="switch"><input type="checkbox" id="optFeelings"> Show "how do you feel?" feelings</label>
+        <small class="note">Simple = just your question and the ball.</small>
       </div>
-      <small class="note">Everything is stored only on this device, in this browser.</small>
+    </div>
+
+    <div class="win">
+      <div class="win-title"><span>the ball</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+      <div class="win-body">
+        <label for="ballName">Name on the ball</label>
+        <input id="ballName" maxlength="14" placeholder="8">
+        <small class="note">Shown on the ball and in the title.</small>
+      </div>
+    </div>
+
+    <div class="win" id="feelSettings">
+      <div class="win-title"><span>feelings</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+      <div class="win-body">
+        <div id="feelEditor"></div>
+        <div class="feel-grid" id="feelGrid"></div>
+        <small class="note">Tap a feeling to change it. Old memories keep the feeling they were saved with, even if you change or delete it.</small>
+      </div>
+    </div>
+
+    <div class="win">
+      <div class="win-title"><span>decision tags</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+      <div class="win-body">
+        <div class="list-edit" id="topicEditor"></div>
+        <button id="addTopic" style="margin-top:10px">+ Add tag</button>
+        <small class="note">The slider sets how often the ball says yes. Strict for things you want to do less (like buying snacks), encouraging for things you want to do more (like talking to strangers).</small>
+      </div>
+    </div>
+
+    <div class="win">
+      <div class="win-title"><span>ball answers</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+      <div class="win-body">
+        <div class="list-edit" id="answerEditor"></div>
+        <button id="addAnswer" style="margin-top:10px">+ Add answer</button>
+        <small class="note">The type (yes / maybe / no) decides how each answer counts for your tag sliders and stats.</small>
+      </div>
+    </div>
+
+    <div class="win">
+      <div class="win-title"><span>my data</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+      <div class="win-body">
+        <div class="row">
+          <button class="small" id="exportBtn">Export backup</button>
+          <button class="small" id="importBtn">Import backup</button>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+          <button class="small" id="resetSettings">Reset settings</button>
+          <button class="small danger" id="clearJournal">Erase memory</button>
+        </div>
+        <small class="note">Everything is stored only on this device, in this browser.</small>
+        <p class="status" id="offlineStatus"><i></i><span>Checking offline mode…</span></p>
+      </div>
     </div>
   </section>
 </main>
+<footer>~ trust the ball ~</footer>
 
 <script>
 (() => {
   const STORE_KEY = "magic8ball.v1";
 
-  const MOODS = [
-    { emoji: "😌", label: "Calm" },
-    { emoji: "🙂", label: "Curious" },
-    { emoji: "😬", label: "Nervous" },
-    { emoji: "😰", label: "Anxious" },
-    { emoji: "🤩", label: "Excited" },
-    { emoji: "😩", label: "Tired" },
-    { emoji: "🤔", label: "Torn" },
-  ];
+  // ---------- feeling faces (hand-drawn SVG, no emoji) ----------
+  const INK = "#2b1d4a";
+  const EYES = {
+    dot:    (x, y) => `<circle cx="${x}" cy="${y}" r="5.5" fill="${INK}"/>`,
+    wide:   (x, y) => `<ellipse cx="${x}" cy="${y}" rx="7" ry="9" fill="${INK}"/><circle cx="${x - 2.4}" cy="${y - 3.4}" r="2.6" fill="#fff"/>`,
+    happy:  (x, y) => `<path d="M${x - 7} ${y + 3} Q${x} ${y - 7} ${x + 7} ${y + 3}" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`,
+    sleepy: (x, y) => `<path d="M${x - 7} ${y - 1} Q${x} ${y + 6} ${x + 7} ${y - 1}" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`,
+    line:   (x, y) => `<line x1="${x - 7}" y1="${y}" x2="${x + 7}" y2="${y}" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`,
+    star:   (x, y) => `<path d="M${x} ${y - 10} Q${x} ${y} ${x + 10} ${y} Q${x} ${y} ${x} ${y + 10} Q${x} ${y} ${x - 10} ${y} Q${x} ${y} ${x} ${y - 10}Z" fill="${INK}"/>`,
+    heart:  (x, y) => `<path d="M${x} ${y + 7} C${x - 10} ${y}, ${x - 7} ${y - 9}, ${x} ${y - 3} C${x + 7} ${y - 9}, ${x + 10} ${y}, ${x} ${y + 7}Z" fill="#e0337a"/>`,
+    cross:  (x, y) => `<path d="M${x - 6} ${y - 6} L${x + 6} ${y + 6} M${x + 6} ${y - 6} L${x - 6} ${y + 6}" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`,
+    spiral: (x, y) => `<path d="M${x} ${y} a1.6 1.6 0 1 1 3.2 0 a3.2 3.2 0 1 1 -6.4 0 a4.8 4.8 0 1 1 9.6 0 a6.4 6.4 0 1 1 -12.8 0" fill="none" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/>`,
+  };
+  const MOUTHS = {
+    smile:  () => `<path d="M37 63 Q50 77 63 63" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`,
+    grin:   () => `<path d="M35 61 Q50 86 65 61Z" fill="${INK}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><ellipse cx="50" cy="71" rx="6" ry="3.5" fill="#ff6fae"/>`,
+    flat:   () => `<line x1="40" y1="67" x2="60" y2="67" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`,
+    frown:  () => `<path d="M38 72 Q50 60 62 72" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`,
+    oh:     () => `<ellipse cx="50" cy="68" rx="5.5" ry="7" fill="${INK}"/>`,
+    wobble: () => `<path d="M36 68 q3.5 -5 7 0 t7 0 t7 0 t7 0" fill="none" stroke="${INK}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+    cat:    () => `<path d="M38 64 q6 8 12 0 q6 8 12 0" fill="none" stroke="${INK}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+    tongue: () => `<path d="M37 63 Q50 75 63 63" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/><path d="M50 69 q0 9 6 9 q6 0 5 -9" fill="#ff6fae" stroke="${INK}" stroke-width="3"/>`,
+  };
+  const SHAPES = {
+    circle:   () => `<circle cx="50" cy="50" r="44"/>`,
+    squircle: () => `<rect x="7" y="7" width="86" height="86" rx="30"/>`,
+    flower:   () => Array.from({ length: 8 }, (_, i) => {
+                const a = (i / 8) * Math.PI * 2;
+                return `<circle cx="${(50 + Math.cos(a) * 30).toFixed(1)}" cy="${(50 + Math.sin(a) * 30).toFixed(1)}" r="17"/>`;
+              }).join("") + `<circle cx="50" cy="50" r="36"/>`,
+    cloud:    () => `<path d="M24 82 C6 82 4 58 18 52 C12 32 34 18 48 28 C56 10 86 14 84 38 C98 44 96 82 76 82Z"/>`,
+  };
+  const SWATCHES = ["#ff8fcf", "#ffb3e6", "#c9a7ff", "#a7b4ff", "#8fd3ff", "#9ff0c9", "#ffe27a", "#ffb38a", "#d7cce8", "#d4d4e4"];
 
+  let gradSeq = 0;
+  function mix(hex, other, t) {
+    const a = parseInt(hex.slice(1), 16), b = parseInt(other.slice(1), 16);
+    const ch = (v, s) => (v >> s) & 255;
+    const m = (s) => Math.round(ch(a, s) + (ch(b, s) - ch(a, s)) * t);
+    return "#" + ((1 << 24) | (m(16) << 16) | (m(8) << 8) | m(0)).toString(16).slice(1);
+  }
+  function faceSVG(f, size = 48) {
+    const c = /^#[0-9a-f]{6}$/i.test(f.color) ? f.color : "#c9a7ff";
+    const id = "g" + (++gradSeq);
+    const eye = EYES[f.eyes] || EYES.dot, mouth = MOUTHS[f.mouth] || MOUTHS.smile, shape = SHAPES[f.shape] || SHAPES.circle;
+    return `<svg class="face-svg" width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true">
+      <defs><radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="36" cy="30" r="78">
+        <stop offset="0" stop-color="${mix(c, "#ffffff", .75)}"/><stop offset=".55" stop-color="${c}"/><stop offset="1" stop-color="${mix(c, "#4b2a8a", .35)}"/>
+      </radialGradient></defs>
+      <g fill="url(#${id})" stroke="${mix(c, "#4b2a8a", .45)}" stroke-width="2">${shape()}</g>
+      <ellipse cx="34" cy="24" rx="13" ry="6.5" fill="#fff" opacity=".75" transform="rotate(-25 34 24)"/>
+      <path d="M76 14 Q76 21 83 21 Q76 21 76 28 Q76 21 69 21 Q76 21 76 14Z" fill="#fff" opacity=".9"/>
+      ${f.blush ? `<ellipse cx="24" cy="60" rx="7" ry="4" fill="#ff5fa8" opacity=".5"/><ellipse cx="76" cy="60" rx="7" ry="4" fill="#ff5fa8" opacity=".5"/>` : ""}
+      ${eye(35, 46)}${eye(65, 46)}${mouth()}
+    </svg>`;
+  }
+
+  // ---------- defaults ----------
+  const DEFAULT_FEELINGS = [
+    { name: "Calm",     color: "#8fd3ff", eyes: "happy",  mouth: "smile",  shape: "circle",   blush: false },
+    { name: "Curious",  color: "#c9a7ff", eyes: "wide",   mouth: "oh",     shape: "circle",   blush: false },
+    { name: "Nervous",  color: "#9ff0c9", eyes: "wide",   mouth: "wobble", shape: "squircle", blush: true  },
+    { name: "Anxious",  color: "#a7b4ff", eyes: "spiral", mouth: "wobble", shape: "cloud",    blush: false },
+    { name: "Excited",  color: "#ff8fcf", eyes: "star",   mouth: "grin",   shape: "flower",   blush: true  },
+    { name: "Tired",    color: "#d7cce8", eyes: "sleepy", mouth: "flat",   shape: "squircle", blush: false },
+    { name: "Torn",     color: "#ffe27a", eyes: "dot",    mouth: "cat",    shape: "circle",   blush: false },
+  ];
+  const DEFAULT_LEANS = { "snack": 25, "talk to strangers": 80, "go out": 60 };
   const DEFAULTS = {
     ballName: "8",
+    showTopics: true,
+    showFeelings: true,
     topics: [
-      { name: "Snack", question: "Should I get a snack?" },
-      { name: "Talk to strangers", question: "Should I talk to a stranger?" },
-      { name: "Go out", question: "Should I go out today?" },
-      { name: "Something else", question: "" },
+      { name: "Snack", question: "Should I buy a snack?", yesChance: 25 },
+      { name: "Talk to strangers", question: "Should I talk to a stranger?", yesChance: 80 },
+      { name: "Go out", question: "Should I go out today?", yesChance: 60 },
+      { name: "Something else", question: "", yesChance: 50 },
     ],
     answers: [
       { text: "It is certain", type: "yes" },
       { text: "Without a doubt", type: "yes" },
       { text: "Yes, go for it", type: "yes" },
       { text: "Signs point to yes", type: "yes" },
-      { text: "You deserve it", type: "yes" },
       { text: "Be brave", type: "yes" },
       { text: "Ask again later", type: "maybe" },
       { text: "Trust your gut", type: "maybe" },
       { text: "Cannot predict now", type: "maybe" },
       { text: "Not right now", type: "no" },
+      { text: "Save it for later", type: "no" },
       { text: "Don't count on it", type: "no" },
       { text: "My sources say no", type: "no" },
     ],
   };
 
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const clone = (x) => JSON.parse(JSON.stringify(x));
+  const freshFeelings = () => DEFAULT_FEELINGS.map((f) => ({ id: uid(), ...f }));
+  const snapshot = (f) => f && { name: f.name, color: f.color, eyes: f.eyes, mouth: f.mouth, shape: f.shape, blush: !!f.blush };
+
   // ---------- storage ----------
   function normalize(data) {
+    const topics = Array.isArray(data.topics) && data.topics.length ? data.topics : clone(DEFAULTS.topics);
+    topics.forEach((t) => {
+      if (typeof t.yesChance !== "number") t.yesChance = DEFAULT_LEANS[String(t.name).toLowerCase()] ?? 50;
+    });
+    const feelings = Array.isArray(data.feelings) ? data.feelings : freshFeelings();
+    const journal = Array.isArray(data.journal) ? data.journal : [];
+    // Migrate v1 entries that stored an emoji mood label.
+    journal.forEach((e) => {
+      if (e.feeling === undefined) {
+        const def = e.mood && DEFAULT_FEELINGS.find((f) => f.name === e.mood);
+        e.feeling = def ? snapshot(def) : null;
+        delete e.mood; delete e.moodEmoji;
+      }
+    });
     return {
       ballName: data.ballName ?? DEFAULTS.ballName,
-      topics: Array.isArray(data.topics) && data.topics.length ? data.topics : clone(DEFAULTS.topics),
+      showTopics: data.showTopics ?? true,
+      showFeelings: data.showFeelings ?? true,
+      topics,
       answers: Array.isArray(data.answers) && data.answers.length ? data.answers : clone(DEFAULTS.answers),
-      journal: Array.isArray(data.journal) ? data.journal : [],
+      feelings,
+      journal,
     };
   }
   function load() {
@@ -295,53 +539,67 @@
       const raw = localStorage.getItem(STORE_KEY);
       if (raw) return normalize(JSON.parse(raw));
     } catch (e) { /* storage unavailable or corrupt */ }
-    return { ...clone(DEFAULTS), journal: [] };
+    return normalize({});
   }
   function save() {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
   }
-  function clone(x) { return JSON.parse(JSON.stringify(x)); }
 
   let state = load();
+  save();
   const $ = (id) => document.getElementById(id);
-  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   // ---------- tabs ----------
-  document.querySelectorAll("nav button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("active", b === btn));
-      document.querySelectorAll("main section").forEach((s) => s.classList.toggle("active", s.id === btn.dataset.tab));
-      if (btn.dataset.tab === "journal") renderJournal();
-      if (btn.dataset.tab === "settings") renderSettings();
-      if (btn.dataset.tab === "ask") renderAsk();
-    });
-  });
+  function showTab(tab) {
+    document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+    document.querySelectorAll("main section").forEach((s) => s.classList.toggle("active", s.id === tab));
+    if (tab === "journal") renderJournal();
+    if (tab === "settings") renderSettings();
+    if (tab === "ask") renderAsk();
+  }
+  document.querySelectorAll("nav button").forEach((btn) => btn.addEventListener("click", () => showTab(btn.dataset.tab)));
 
   // ---------- ask ----------
   let selectedTopic = null;
-  let selectedMood = null;
+  let selectedFeeling = null;
   let lastEntryId = null;
   let shaking = false;
 
+  function leanText(p) {
+    if (p <= 20) return "Very strict: almost always says no";
+    if (p < 40) return "Strict: usually says no";
+    if (p <= 60) return "Neutral";
+    if (p < 80) return "Encouraging: usually says yes";
+    return "Cheerleader: almost always yes";
+  }
+
   function renderBallName() {
     const name = state.ballName.trim() || "8";
-    const face = $("ballFace");
-    face.textContent = name;
-    face.classList.toggle("small", name.length > 3);
-    $("appTitle").textContent = `🎱 Magic ${name} Ball`;
+    $("ballFace").textContent = name;
+    $("ballFace").classList.toggle("small", name.length > 3);
+    $("appTitle").textContent = `Magic ${name} Ball`;
     document.title = `Magic ${name} Ball`;
   }
 
   function renderAsk() {
     renderBallName();
     if (selectedTopic != null && selectedTopic >= state.topics.length) selectedTopic = null;
+    if (selectedFeeling && !state.feelings.some((f) => f.id === selectedFeeling)) selectedFeeling = null;
+
+    $("topicWin").hidden = !state.showTopics || !state.topics.length;
+    $("feelWin").hidden = !state.showFeelings;
+
     $("topicTags").innerHTML = state.topics.map((t, i) =>
-      `<button class="tag ${i === selectedTopic ? "selected" : ""}" data-i="${i}">${esc(t.name)}</button>`
-    ).join("");
-    $("moodPick").innerHTML = MOODS.map((m, i) =>
-      `<button class="mood ${i === selectedMood ? "selected" : ""}" data-i="${i}" title="${m.label}">${m.emoji}</button>`
-    ).join("");
-    $("moodLabel").textContent = selectedMood != null ? MOODS[selectedMood].label : "";
+      `<button class="tag ${i === selectedTopic ? "selected" : ""}" data-i="${i}">${esc(t.name)}</button>`).join("");
+    $("leanHint").textContent = selectedTopic != null
+      ? `The ball on "${state.topics[selectedTopic].name}": ${leanText(state.topics[selectedTopic].yesChance).toLowerCase()}.`
+      : "";
+
+    $("feelPick").innerHTML = state.feelings.map((f) =>
+      `<button class="feel-btn ${f.id === selectedFeeling ? "selected" : ""}" data-id="${f.id}" title="${esc(f.name)}">
+        ${faceSVG(f, 46)}<span>${esc(f.name)}</span></button>`).join("") +
+      `<button class="feel-btn add" data-add="1">+ new</button>`;
   }
 
   $("topicTags").addEventListener("click", (e) => {
@@ -353,17 +611,25 @@
     renderAsk();
   });
 
-  $("moodPick").addEventListener("click", (e) => {
-    const b = e.target.closest(".mood"); if (!b) return;
-    const i = +b.dataset.i;
-    selectedMood = selectedMood === i ? null : i;
+  $("feelPick").addEventListener("click", (e) => {
+    const b = e.target.closest(".feel-btn"); if (!b) return;
+    if (b.dataset.add) { showTab("settings"); openFeelingEditor(null); $("feelSettings").scrollIntoView({ behavior: "smooth" }); return; }
+    selectedFeeling = selectedFeeling === b.dataset.id ? null : b.dataset.id;
     renderAsk();
   });
+
+  function pickAnswer(yesChance) {
+    const r = Math.random();
+    const type = r < 0.15 ? "maybe" : (Math.random() * 100 < yesChance ? "yes" : "no");
+    let pool = state.answers.filter((a) => a.type === type);
+    if (!pool.length) pool = state.answers;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
 
   $("ball").addEventListener("click", () => {
     if (shaking) return;
     const question = $("question").value.trim();
-    if (!question) { $("hint").textContent = "Type a question or pick a tag first ✍️"; $("question").focus(); return; }
+    if (!question) { $("hint").textContent = "Type a question first"; $("question").focus(); return; }
     if (!state.answers.length) { $("hint").textContent = "Add some answers in Settings first"; return; }
 
     shaking = true;
@@ -373,7 +639,9 @@
     $("hint").textContent = "Shaking…";
     ball.classList.remove("shake"); void ball.offsetWidth; ball.classList.add("shake");
 
-    const answer = state.answers[Math.floor(Math.random() * state.answers.length)];
+    const topic = state.showTopics && selectedTopic != null ? state.topics[selectedTopic] : null;
+    const feeling = state.showFeelings ? state.feelings.find((f) => f.id === selectedFeeling) : null;
+    const answer = pickAnswer(topic ? topic.yesChance : 50);
 
     setTimeout(() => {
       ball.classList.remove("shake");
@@ -382,12 +650,11 @@
       requestAnimationFrame(() => tri.classList.add("show"));
 
       const entry = {
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        id: uid(),
         date: new Date().toISOString(),
-        topic: selectedTopic != null ? state.topics[selectedTopic].name : "",
+        topic: topic ? topic.name : "",
         question,
-        mood: selectedMood != null ? MOODS[selectedMood].label : "",
-        moodEmoji: selectedMood != null ? MOODS[selectedMood].emoji : "",
+        feeling: snapshot(feeling) || null,
         answer: answer.text,
         answerType: answer.type,
         did: "pending",
@@ -408,9 +675,7 @@
     const b = e.target.closest("[data-did]"); if (!b || !lastEntryId) return;
     setDid(lastEntryId, b.dataset.did);
     $("resultCard").hidden = true;
-    $("hint").textContent = b.dataset.did === "pending"
-      ? "You can mark it later in Memory"
-      : "Noted in your memory 📝";
+    $("hint").textContent = b.dataset.did === "pending" ? "You can mark it later in Memory" : "Noted in your memory";
   });
 
   function setDid(id, did) {
@@ -419,23 +684,26 @@
   }
 
   // ---------- journal ----------
-  const DID_LABEL = { yes: "✅ Did it", no: "🙅 Didn't", pending: "⏳ Undecided" };
+  const DID_LABEL = { yes: "Did it", no: "Didn't", pending: "Undecided" };
 
   function renderJournal() {
     const j = state.journal;
     const done = j.filter((e) => e.did === "yes").length;
-    const followed = j.filter((e) =>
-      (e.answerType === "yes" && e.did === "yes") || (e.answerType === "no" && e.did === "no")).length;
+    const followed = j.filter((e) => (e.answerType === "yes" && e.did === "yes") || (e.answerType === "no" && e.did === "no")).length;
     const decided = j.filter((e) => e.did !== "pending" && e.answerType !== "maybe").length;
-    const moodCounts = {};
-    j.forEach((e) => { if (e.mood) moodCounts[e.moodEmoji + " " + e.mood] = (moodCounts[e.moodEmoji + " " + e.mood] || 0) + 1; });
-    const topMood = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0];
+    const counts = new Map();
+    j.forEach((e) => {
+      if (!e.feeling) return;
+      const c = counts.get(e.feeling.name) || { n: 0, f: e.feeling };
+      c.n++; counts.set(e.feeling.name, c);
+    });
+    const top = [...counts.values()].sort((a, b) => b.n - a.n)[0];
 
     $("stats").innerHTML = `
       <div class="stat"><b>${j.length}</b><span>Questions asked</span></div>
       <div class="stat"><b>${done}</b><span>Things done</span></div>
       <div class="stat"><b>${decided ? Math.round((followed / decided) * 100) + "%" : "–"}</b><span>Followed the ball</span></div>
-      <div class="stat"><b>${topMood ? esc(topMood[0]) : "–"}</b><span>Most common feeling</span></div>`;
+      <div class="stat"><b>${top ? faceSVG(top.f, 30) + esc(top.f.name) : "–"}</b><span>Top feeling</span></div>`;
 
     const topics = [...new Set(j.map((e) => e.topic).filter(Boolean))];
     const ft = $("filterTopic"), cur = ft.value;
@@ -446,36 +714,37 @@
     const list = j.filter((e) => (!fTopic || e.topic === fTopic) && (!fDid || e.did === fDid));
 
     if (!list.length) {
-      $("entries").innerHTML = `<div class="empty">${j.length ? "Nothing matches these filters." : "No memories yet. Go ask the ball something!"}</div>`;
+      $("entries").innerHTML = `<div class="win"><div class="win-body empty">${j.length ? "Nothing matches these filters." : "No memories yet. Go ask the ball something!"}</div></div>`;
       return;
     }
 
     $("entries").innerHTML = list.map((e) => {
       const d = new Date(e.date);
       return `
-      <div class="entry" data-id="${e.id}">
-        <div class="entry-head">
+      <div class="win entry" data-id="${e.id}">
+        <div class="win-title">
           <span>${d.toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" })}
-            · ${d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}</span>
-          <span>${e.topic ? esc(e.topic) : ""}</span>
+            &middot; ${d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}</span>
+          <span class="win-dots"><i></i><i></i><i></i></span>
         </div>
-        <h3>${esc(e.question)}</h3>
-        <div>🎱 <span class="ans">${esc(e.answer)}</span></div>
-        <div class="meta">Feeling when asking: ${e.mood ? e.moodEmoji + " " + esc(e.mood) : "not recorded"}</div>
-        <div class="actions">
-          ${["yes", "no", "pending"].map((k) =>
-            `<button data-act="did" data-v="${k}" class="${e.did === k ? "on" : ""}">${DID_LABEL[k]}</button>`).join("")}
-          <button data-act="delete" class="danger">Delete</button>
+        <div class="win-body">
+          <div class="entry-head"><h3>${esc(e.question)}</h3>${e.topic ? `<span class="chip">${esc(e.topic)}</span>` : ""}</div>
+          <div>The ball said: <span class="ans">${esc(e.answer)}</span></div>
+          ${e.feeling ? `<div class="feel">${faceSVG(e.feeling, 30)} Felt ${esc(e.feeling.name.toLowerCase())} asking</div>` : ""}
+          <div class="actions">
+            ${["yes", "no", "pending"].map((k) =>
+              `<button class="small ${e.did === k ? "on" : ""}" data-act="did" data-v="${k}">${DID_LABEL[k]}</button>`).join("")}
+            <button class="small danger" data-act="delete">Delete</button>
+          </div>
+          <label>Notes: how did it go?</label>
+          <textarea data-act="note" placeholder="e.g. Said hi to someone at the bus stop, felt proud">${esc(e.note || "")}</textarea>
         </div>
-        <label>Notes — how did it go?</label>
-        <textarea data-act="note" placeholder="e.g. Got a croissant, felt great">${esc(e.note || "")}</textarea>
       </div>`;
     }).join("");
   }
 
   $("filterTopic").addEventListener("change", renderJournal);
   $("filterDid").addEventListener("change", renderJournal);
-
   $("entries").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-act]"); if (!b) return;
     const id = b.closest(".entry").dataset.id;
@@ -491,47 +760,141 @@
   });
 
   // ---------- settings ----------
+  let draft = null; // feeling being edited
+
   function renderSettings() {
+    $("optTopics").checked = state.showTopics;
+    $("optFeelings").checked = state.showFeelings;
     $("ballName").value = state.ballName;
+    renderFeelingSettings();
 
     $("topicEditor").innerHTML = state.topics.map((t, i) => `
-      <div class="item" data-i="${i}">
-        <input data-f="name" value="${esc(t.name)}" placeholder="Tag name" maxlength="30">
-        <input data-f="question" value="${esc(t.question)}" placeholder="Question it fills in (optional)" maxlength="200">
-        <button data-act="del" title="Remove">✕</button>
+      <div class="tag-item" data-i="${i}">
+        <div class="item">
+          <input data-f="name" value="${esc(t.name)}" placeholder="Tag name" maxlength="30" aria-label="Tag name">
+          <button class="small" data-act="del" aria-label="Remove tag">Remove</button>
+        </div>
+        <div class="item"><input data-f="question" value="${esc(t.question)}" placeholder="Question it fills in (optional)" maxlength="200" aria-label="Question"></div>
+        <div class="lean">
+          <span>No</span>
+          <input type="range" min="0" max="100" step="5" data-f="yesChance" value="${t.yesChance}" aria-label="How often the ball says yes">
+          <span>Yes</span>
+          <output>${leanText(t.yesChance)}</output>
+        </div>
       </div>`).join("");
 
     $("answerEditor").innerHTML = state.answers.map((a, i) => `
       <div class="item" data-i="${i}">
-        <input data-f="text" value="${esc(a.text)}" placeholder="Answer" maxlength="40">
-        <select data-f="type">
+        <input data-f="text" value="${esc(a.text)}" placeholder="Answer" maxlength="40" aria-label="Answer">
+        <select data-f="type" aria-label="Answer type">
           ${["yes", "maybe", "no"].map((t) => `<option ${a.type === t ? "selected" : ""}>${t}</option>`).join("")}
         </select>
-        <button data-act="del" title="Remove">✕</button>
+        <button class="small" data-act="del" aria-label="Remove answer">Remove</button>
       </div>`).join("");
   }
 
+  function renderFeelingSettings() {
+    $("feelGrid").innerHTML = state.feelings.map((f) =>
+      `<button class="feel-btn ${draft && draft.id === f.id ? "selected" : ""}" data-id="${f.id}">${faceSVG(f, 46)}<span>${esc(f.name)}</span></button>`).join("") +
+      `<button class="feel-btn add" data-add="1">+ new</button>`;
+
+    if (!draft) { $("feelEditor").innerHTML = ""; return; }
+    const isNew = !state.feelings.some((f) => f.id === draft.id);
+    const opt = (group, key, f) =>
+      `<button class="opt ${draft[group] === key ? "selected" : ""}" data-group="${group}" data-key="${key}" title="${key}">${faceSVG(f, 40)}</button>`;
+    $("feelEditor").innerHTML = `
+      <div class="editor">
+        <div class="editor-top">
+          <div id="draftPreview">${faceSVG(draft, 84)}</div>
+          <div>
+            <label for="draftName">Name</label>
+            <input id="draftName" value="${esc(draft.name)}" maxlength="20" placeholder="e.g. Brave">
+          </div>
+        </div>
+        <span class="label">Color</span>
+        <div class="opts">
+          ${SWATCHES.map((c) => `<button class="swatch ${draft.color === c ? "selected" : ""}" data-color="${c}" style="background:${c}" aria-label="Color ${c}"></button>`).join("")}
+          <input type="color" id="draftColor" value="${draft.color}" aria-label="Custom color">
+        </div>
+        <span class="label">Shape</span>
+        <div class="opts">${Object.keys(SHAPES).map((k) => opt("shape", k, { ...draft, shape: k })).join("")}</div>
+        <span class="label">Eyes</span>
+        <div class="opts">${Object.keys(EYES).map((k) => opt("eyes", k, { ...draft, eyes: k })).join("")}</div>
+        <span class="label">Mouth</span>
+        <div class="opts">${Object.keys(MOUTHS).map((k) => opt("mouth", k, { ...draft, mouth: k })).join("")}</div>
+        <label class="switch" style="margin-top:10px"><input type="checkbox" id="draftBlush" ${draft.blush ? "checked" : ""}> Rosy cheeks</label>
+        <div class="row" style="margin-top:10px">
+          <button class="gel" data-ed="save">${isNew ? "Add feeling" : "Save"}</button>
+          <button data-ed="cancel">Cancel</button>
+          ${isNew ? "" : `<button class="danger" data-ed="delete">Delete</button>`}
+        </div>
+      </div>`;
+  }
+
+  function openFeelingEditor(id) {
+    const f = id && state.feelings.find((x) => x.id === id);
+    draft = f ? { ...f } : { id: uid(), name: "", color: SWATCHES[Math.floor(Math.random() * SWATCHES.length)], eyes: "dot", mouth: "smile", shape: "circle", blush: false };
+    renderFeelingSettings();
+    if (!f) setTimeout(() => $("draftName") && $("draftName").focus(), 0);
+  }
+
+  $("feelGrid").addEventListener("click", (e) => {
+    const b = e.target.closest(".feel-btn"); if (!b) return;
+    openFeelingEditor(b.dataset.add ? null : b.dataset.id);
+  });
+  $("feelEditor").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b || !draft) return;
+    if (b.dataset.group) { draft[b.dataset.group] = b.dataset.key; renderFeelingSettings(); return; }
+    if (b.dataset.color) { draft.color = b.dataset.color; renderFeelingSettings(); return; }
+    if (b.dataset.ed === "cancel") { draft = null; renderFeelingSettings(); return; }
+    if (b.dataset.ed === "delete") {
+      if (!confirm(`Delete the "${draft.name}" feeling? Old memories keep it.`)) return;
+      state.feelings = state.feelings.filter((f) => f.id !== draft.id);
+      draft = null; save(); renderFeelingSettings(); return;
+    }
+    if (b.dataset.ed === "save") {
+      draft.name = draft.name.trim();
+      if (!draft.name) { $("draftName").focus(); $("draftName").placeholder = "Give it a name first"; return; }
+      const i = state.feelings.findIndex((f) => f.id === draft.id);
+      if (i >= 0) state.feelings[i] = { ...draft }; else state.feelings.push({ ...draft });
+      draft = null; save(); renderFeelingSettings();
+    }
+  });
+  $("feelEditor").addEventListener("input", (e) => {
+    if (!draft) return;
+    if (e.target.id === "draftName") { draft.name = e.target.value; }
+    if (e.target.id === "draftColor") { draft.color = e.target.value; $("draftPreview").innerHTML = faceSVG(draft, 84); }
+    if (e.target.id === "draftBlush") { draft.blush = e.target.checked; $("draftPreview").innerHTML = faceSVG(draft, 84); }
+  });
+  $("feelEditor").addEventListener("change", (e) => { if (e.target.id === "draftColor") renderFeelingSettings(); });
+
+  $("optTopics").addEventListener("change", (e) => { state.showTopics = e.target.checked; save(); });
+  $("optFeelings").addEventListener("change", (e) => { state.showFeelings = e.target.checked; save(); });
+  $("presetSimple").addEventListener("click", () => { state.showTopics = state.showFeelings = false; save(); renderSettings(); });
+  $("presetFull").addEventListener("click", () => { state.showTopics = state.showFeelings = true; save(); renderSettings(); });
   $("ballName").addEventListener("input", (e) => { state.ballName = e.target.value; save(); renderBallName(); });
 
-  function bindEditor(editorId, key) {
+  function bindEditor(editorId, key, itemSel) {
     const ed = $(editorId);
     const update = (e) => {
       const f = e.target.dataset.f; if (!f) return;
-      const i = +e.target.closest(".item").dataset.i;
-      state[key][i][f] = e.target.value; save();
+      const row = e.target.closest(itemSel), item = state[key][+row.dataset.i];
+      item[f] = f === "yesChance" ? +e.target.value : e.target.value;
+      if (f === "yesChance") row.querySelector("output").textContent = leanText(item.yesChance);
+      save();
     };
     ed.addEventListener("input", update);
     ed.addEventListener("change", update);
     ed.addEventListener("click", (e) => {
       const b = e.target.closest("[data-act=del]"); if (!b) return;
-      state[key].splice(+b.closest(".item").dataset.i, 1); save(); renderSettings();
+      state[key].splice(+b.closest(itemSel).dataset.i, 1); save(); renderSettings();
     });
   }
-  bindEditor("topicEditor", "topics");
-  bindEditor("answerEditor", "answers");
+  bindEditor("topicEditor", "topics", ".tag-item");
+  bindEditor("answerEditor", "answers", ".item");
 
   $("addTopic").addEventListener("click", () => {
-    state.topics.push({ name: "New tag", question: "" }); save(); renderSettings();
+    state.topics.push({ name: "New tag", question: "", yesChance: 50 }); save(); renderSettings();
     const inputs = $("topicEditor").querySelectorAll("[data-f=name]"); inputs[inputs.length - 1].select();
   });
   $("addAnswer").addEventListener("click", () => {
@@ -540,13 +903,14 @@
   });
 
   $("resetSettings").addEventListener("click", () => {
-    if (!confirm("Reset ball name, tags and answers to defaults? Your memory is kept.")) return;
-    Object.assign(state, clone({ ballName: DEFAULTS.ballName, topics: DEFAULTS.topics, answers: DEFAULTS.answers }));
+    if (!confirm("Reset the ball name, layout, tags, answers and feelings to defaults? Your memory is kept.")) return;
+    Object.assign(state, clone({ ballName: DEFAULTS.ballName, showTopics: true, showFeelings: true, topics: DEFAULTS.topics, answers: DEFAULTS.answers }));
+    state.feelings = freshFeelings(); draft = null;
     save(); renderSettings(); renderBallName();
   });
   $("clearJournal").addEventListener("click", () => {
     if (!confirm("Erase ALL memories? This can't be undone (export a backup first!).")) return;
-    state.journal = []; save(); renderJournal();
+    state.journal = []; save();
   });
 
   $("exportBtn").addEventListener("click", () => {
@@ -564,12 +928,28 @@
       const data = JSON.parse(await file.text());
       if (!Array.isArray(data.journal)) throw new Error("bad file");
       if (!confirm(`Import ${data.journal.length} memories? This replaces your current data.`)) return;
-      state = normalize(data); save(); renderSettings(); renderBallName();
+      state = normalize(data); draft = null; save(); renderSettings(); renderBallName();
       alert("Backup imported!");
     } catch (err) {
       alert("That doesn't look like a Magic 8 Ball backup file.");
     } finally { e.target.value = ""; }
   });
+
+  // ---------- offline ----------
+  function setOfflineStatus(on, text) {
+    $("offlineStatus").classList.toggle("on", on);
+    $("offlineStatus").querySelector("span").textContent = text;
+  }
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("sw.js")
+      .then(() => navigator.serviceWorker.ready)
+      .then(() => setOfflineStatus(true, "Offline ready: works without internet"))
+      .catch(() => setOfflineStatus(false, "Offline mode unavailable here"));
+  } else if (location.protocol === "file:") {
+    setOfflineStatus(true, "Running from a file on this device: no internet needed");
+  } else {
+    setOfflineStatus(false, "Offline mode not supported in this browser");
+  }
 
   renderAsk();
 })();

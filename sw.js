@@ -1,6 +1,6 @@
 // Offline support: keeps a copy of the app on the device.
 // Bump CACHE when shipping changes to non-HTML assets.
-const CACHE = "magic8-v2";
+const CACHE = "magic8-v3";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {

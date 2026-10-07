@@ -245,6 +245,29 @@
   .status i { width: 10px; height: 10px; border-radius: 50%; background: #c0b8d8; display: inline-block; }
   .status.on i { background: #3fd68f; box-shadow: 0 0 8px #3fd68f; }
 
+  /* Sounds */
+  .sound-fab {
+    position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 30;
+    width: 58px; height: 58px; padding: 0; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sound-fab svg { width: 28px; height: 28px; }
+  .sound-fab.playing { animation: glow 2.2s ease-in-out infinite; }
+  @keyframes glow { 0%,100% { box-shadow: 0 0 0 0 rgba(255, 95, 184, .55), 0 2px 6px rgba(210, 60, 150, .35); } 50% { box-shadow: 0 0 0 10px rgba(255, 95, 184, 0), 0 2px 6px rgba(210, 60, 150, .35); } }
+  .sound-panel {
+    position: fixed; z-index: 30; left: 16px; right: 16px; bottom: calc(86px + env(safe-area-inset-bottom));
+    max-width: 360px; margin: 0 0 0 auto; max-height: calc(100vh - 120px); overflow-y: auto;
+    background: rgba(255, 255, 255, .94);
+  }
+  .sound-block + .sound-block { margin-top: 14px; padding-top: 14px; border-top: 2px dashed #ece4ff; }
+  .sound-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .sound-row b { font-size: .95rem; }
+  .sound-row button { min-width: 74px; }
+  .sound-block select { margin-top: 10px; }
+  .sound-block .lean output { min-width: 40px; }
+  main { padding-bottom: 100px; }
+  @media (prefers-reduced-motion: reduce) { .sound-fab.playing { animation: none; } }
+
   footer { text-align: center; font-size: .72rem; letter-spacing: .3em; color: var(--ink-soft); padding-bottom: 24px; text-transform: uppercase; }
 
   @media (prefers-reduced-motion: reduce) {
@@ -405,6 +428,32 @@
 </main>
 <footer>~ trust the ball ~</footer>
 
+<button class="gel pink sound-fab" id="soundFab" aria-label="Sounds" aria-expanded="false" aria-controls="soundPanel">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="#fff"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.2 6.5a7.5 7.5 0 0 1 0 11"/>
+  </svg>
+</button>
+<div class="win sound-panel" id="soundPanel" hidden>
+  <div class="win-title"><span>sounds</span><span class="win-dots"><i></i><i></i><i></i></span></div>
+  <div class="win-body">
+    <div class="sound-block">
+      <div class="sound-row"><b>Forest birdsong</b><button class="small" id="birdsBtn">Play</button></div>
+      <div class="lean"><span>Volume</span><input type="range" id="birdVol" min="0" max="100" step="5" aria-label="Birdsong volume"><output id="birdVolOut"></output></div>
+    </div>
+    <div class="sound-block">
+      <div class="sound-row"><b>Binaural beats</b><button class="small" id="beatsBtn">Play</button></div>
+      <select id="beatMode" aria-label="Binaural beat type">
+        <option value="sleep">Sleep (2 Hz delta)</option>
+        <option value="deep">Deep relax (6 Hz theta)</option>
+        <option value="calm">Calm (10 Hz alpha)</option>
+        <option value="focus">Focus (14 Hz beta)</option>
+      </select>
+      <div class="lean"><span>Volume</span><input type="range" id="beatVol" min="0" max="100" step="5" aria-label="Binaural beats volume"><output id="beatVolOut"></output></div>
+    </div>
+    <small class="note">Binaural beats only work with headphones. Play both together for a calm forest mix. Sounds pause if you leave the app or lock your phone. No sound on iPhone? Check the silent switch.</small>
+  </div>
+</div>
+
 <script>
 (() => {
   const STORE_KEY = "magic8ball.v1";
@@ -528,6 +577,7 @@
       ballName: data.ballName ?? DEFAULTS.ballName,
       showTopics: data.showTopics ?? true,
       showFeelings: data.showFeelings ?? true,
+      sound: { birdVol: 70, beatVol: 40, beatMode: "calm", ...(data.sound || {}) },
       topics,
       answers: Array.isArray(data.answers) && data.answers.length ? data.answers : clone(DEFAULTS.answers),
       feelings,
@@ -934,6 +984,213 @@
       alert("That doesn't look like a Magic 8 Ball backup file.");
     } finally { e.target.value = ""; }
   });
+
+  // ---------- sounds (generated live, so they work offline) ----------
+  const BEATS = { sleep: { base: 160, beat: 2 }, deep: { base: 180, beat: 6 }, calm: { base: 200, beat: 10 }, focus: { base: 220, beat: 14 } };
+  const rf = (a, b) => a + Math.random() * (b - a);
+  const ri = (a, b) => Math.floor(rf(a, b + 1));
+
+  // Each bird returns a list of notes: start time, length, start/end pitch, optional vibrato and loudness.
+  const BIRDS = [
+    function chirps() {
+      const n = ri(2, 5), base = rf(2800, 4200), up = Math.random() < .5, notes = []; let t = 0;
+      for (let i = 0; i < n; i++) { const d = rf(.05, .09); notes.push({ t, d, f0: up ? base : base * 1.45, f1: up ? base * 1.45 : base }); t += d + rf(.05, .09); }
+      return notes;
+    },
+    function trill() {
+      const n = ri(12, 24), base = rf(4500, 6000), drift = rf(.85, 1.1), notes = [];
+      for (let i = 0; i < n; i++) { const f = base * (1 + (drift - 1) * i / n); notes.push({ t: i * .045, d: .03, f0: f * 1.1, f1: f * .9, g: .7 }); }
+      return notes;
+    },
+    function whistle() {
+      const n = ri(3, 6), notes = []; let t = 0;
+      for (let i = 0; i < n; i++) { const f = rf(1800, 3400), d = rf(.15, .32); notes.push({ t, d, f0: f, f1: f * rf(.85, 1.2), vib: [rf(30, 45), rf(30, 70)] }); t += d + rf(.05, .1); }
+      return notes;
+    },
+    function feeBee() {
+      const hi = rf(3700, 4100);
+      return [{ t: 0, d: .32, f0: hi, f1: hi * .97 }, { t: .4, d: .34, f0: hi * .84, f1: hi * .81 }];
+    },
+    function warble() {
+      const n = ri(6, 10), lo = rf(2300, 2800), hi = lo * rf(1.4, 1.6), notes = [];
+      for (let i = 0; i < n; i++) notes.push({ t: i * .085, d: .07, f0: i % 2 ? hi : lo, f1: i % 2 ? lo : hi, g: .8 });
+      return notes;
+    },
+    function coo() {
+      const f = rf(480, 600);
+      return [{ t: 0, d: .5, f0: f * .9, f1: f, g: .55 }, { t: .7, d: .45, f0: f, f1: f * .92, g: .5 }, { t: 1.25, d: .45, f0: f, f1: f * .92, g: .45 }];
+    },
+  ];
+
+  const audio = (() => {
+    let ctx, master, birdBus, beatBus, ambience = [], beatOscs = null, birdTimer = null, lastBird = null;
+
+    function ensure() {
+      if (!ctx) {
+        try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        master = ctx.createGain(); master.connect(ctx.destination);
+        const reverb = ctx.createConvolver(), wet = ctx.createGain();
+        reverb.buffer = impulse(2.6, 2.8); wet.gain.value = .35;
+        reverb.connect(wet).connect(master);
+        birdBus = ctx.createGain(); birdBus.gain.value = 0; birdBus.connect(master); birdBus.connect(reverb);
+        beatBus = ctx.createGain(); beatBus.gain.value = 0; beatBus.connect(master);
+      }
+      if (ctx.state !== "running") ctx.resume();
+    }
+    function impulse(sec, decay) {
+      const len = Math.floor(ctx.sampleRate * sec), buf = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (let c = 0; c < 2; c++) {
+        const d = buf.getChannelData(c);
+        for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+      }
+      return buf;
+    }
+    function noiseBuffer(brown) {
+      const len = ctx.sampleRate * 4, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < len; i++) {
+        const w = Math.random() * 2 - 1;
+        if (brown) { last = (last + .02 * w) / 1.02; d[i] = last * 3.5; } else d[i] = w;
+      }
+      return buf;
+    }
+    function fade(param, value, time = .4) { param.setTargetAtTime(value, ctx.currentTime, time / 3); }
+
+    // Wind in the trees: filtered noise that slowly swells and settles.
+    function startAmbience() {
+      const layers = [
+        { brown: true,  type: "lowpass",  freq: 700,  gain: .16, rate: .07, depth: .08 },
+        { brown: false, type: "bandpass", freq: 2600, gain: .025, rate: .11, depth: .02 },
+      ];
+      ambience = layers.map((l) => {
+        const src = ctx.createBufferSource(), filt = ctx.createBiquadFilter(), g = ctx.createGain();
+        const lfo = ctx.createOscillator(), lfoGain = ctx.createGain();
+        src.buffer = noiseBuffer(l.brown); src.loop = true;
+        filt.type = l.type; filt.frequency.value = l.freq; filt.Q.value = .6;
+        g.gain.value = l.gain; lfo.frequency.value = l.rate; lfoGain.gain.value = l.depth;
+        lfo.connect(lfoGain).connect(g.gain);
+        src.connect(filt).connect(g).connect(birdBus);
+        src.start(); lfo.start();
+        return [src, lfo];
+      });
+    }
+    function stopAmbience() {
+      const old = ambience; ambience = [];
+      setTimeout(() => old.flat().forEach((n) => { try { n.stop(); } catch (e) {} }), 1500);
+    }
+
+    function singBird() {
+      // Birds often repeat their song, so sometimes the same bird sings again from the same spot.
+      const bird = lastBird && Math.random() < .45 ? lastBird
+        : { notes: BIRDS[Math.floor(Math.random() * BIRDS.length)](), pan: rf(-.9, .9), dist: Math.random() };
+      lastBird = bird;
+      const t0 = ctx.currentTime + .05;
+      const out = ctx.createGain(), lp = ctx.createBiquadFilter();
+      out.gain.value = .3 * (1 - bird.dist * .6);
+      lp.type = "lowpass"; lp.frequency.value = 9000 - bird.dist * 5000;
+      out.connect(lp);
+      let tail = lp;
+      if (ctx.createStereoPanner) { const pan = ctx.createStereoPanner(); pan.pan.value = bird.pan; lp.connect(pan); tail = pan; }
+      tail.connect(birdBus);
+
+      let end = 0;
+      bird.notes.forEach((n) => {
+        const t = t0 + n.t, o = ctx.createOscillator(), g = ctx.createGain(), peak = n.g ?? 1;
+        o.type = "sine";
+        o.frequency.setValueAtTime(n.f0, t);
+        o.frequency.exponentialRampToValueAtTime(n.f1, t + n.d);
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(peak, t + Math.min(.015, n.d * .3));
+        g.gain.linearRampToValueAtTime(peak * .7, t + n.d * .7);
+        g.gain.linearRampToValueAtTime(0, t + n.d);
+        if (n.vib) {
+          const lfo = ctx.createOscillator(), lg = ctx.createGain();
+          lfo.frequency.value = n.vib[0]; lg.gain.value = n.vib[1];
+          lfo.connect(lg).connect(o.frequency); lfo.start(t); lfo.stop(t + n.d + .05);
+        }
+        o.connect(g).connect(out);
+        o.start(t); o.stop(t + n.d + .05);
+        end = Math.max(end, n.t + n.d);
+      });
+      setTimeout(() => { out.disconnect(); tail.disconnect(); }, (end + 1) * 1000);
+    }
+    function birdLoop() {
+      singBird();
+      birdTimer = setTimeout(birdLoop, rf(700, 4200));
+    }
+
+    return {
+      get birds() { return birdTimer !== null; },
+      get beats() { return beatOscs !== null; },
+      startBirds(vol) {
+        ensure();
+        if (birdTimer !== null) return;
+        startAmbience(); birdLoop();
+        fade(birdBus.gain, vol, 1.5);
+      },
+      stopBirds() {
+        if (birdTimer === null) return;
+        clearTimeout(birdTimer); birdTimer = null; lastBird = null;
+        fade(birdBus.gain, 0, .8); stopAmbience();
+      },
+      startBeats(mode, vol) {
+        ensure();
+        if (beatOscs) return;
+        const m = BEATS[mode] || BEATS.calm, merger = ctx.createChannelMerger(2);
+        const left = ctx.createOscillator(), right = ctx.createOscillator();
+        left.frequency.value = m.base; right.frequency.value = m.base + m.beat;
+        left.connect(merger, 0, 0); right.connect(merger, 0, 1);
+        merger.connect(beatBus);
+        left.start(); right.start();
+        beatOscs = { left, right };
+        fade(beatBus.gain, vol * .22, 2);
+      },
+      setBeatMode(mode) {
+        if (!beatOscs) return;
+        const m = BEATS[mode] || BEATS.calm;
+        fade(beatOscs.left.frequency, m.base, 1.5);
+        fade(beatOscs.right.frequency, m.base + m.beat, 1.5);
+      },
+      stopBeats() {
+        if (!beatOscs) return;
+        const { left, right } = beatOscs; beatOscs = null;
+        fade(beatBus.gain, 0, .8);
+        setTimeout(() => { left.stop(); right.stop(); }, 1500);
+      },
+      setBirdVol(v) { if (birdTimer !== null) fade(birdBus.gain, v); },
+      setBeatVol(v) { if (beatOscs) fade(beatBus.gain, v * .22); },
+    };
+  })();
+
+  function renderSound() {
+    const s = state.sound;
+    $("birdVol").value = s.birdVol; $("birdVolOut").textContent = s.birdVol + "%";
+    $("beatVol").value = s.beatVol; $("beatVolOut").textContent = s.beatVol + "%";
+    $("beatMode").value = s.beatMode;
+    $("birdsBtn").textContent = audio.birds ? "Stop" : "Play";
+    $("beatsBtn").textContent = audio.beats ? "Stop" : "Play";
+    $("birdsBtn").classList.toggle("gel", audio.birds);
+    $("beatsBtn").classList.toggle("gel", audio.beats);
+    $("soundFab").classList.toggle("playing", audio.birds || audio.beats);
+  }
+  $("soundFab").addEventListener("click", () => {
+    const open = $("soundPanel").hidden;
+    $("soundPanel").hidden = !open;
+    $("soundFab").setAttribute("aria-expanded", open);
+    if (open) renderSound();
+  });
+  $("birdsBtn").addEventListener("click", () => {
+    if (audio.birds) audio.stopBirds(); else audio.startBirds(state.sound.birdVol / 100);
+    renderSound();
+  });
+  $("beatsBtn").addEventListener("click", () => {
+    if (audio.beats) audio.stopBeats(); else audio.startBeats(state.sound.beatMode, state.sound.beatVol / 100);
+    renderSound();
+  });
+  $("beatMode").addEventListener("change", (e) => { state.sound.beatMode = e.target.value; save(); audio.setBeatMode(e.target.value); });
+  $("birdVol").addEventListener("input", (e) => { state.sound.birdVol = +e.target.value; save(); audio.setBirdVol(state.sound.birdVol / 100); renderSound(); });
+  $("beatVol").addEventListener("input", (e) => { state.sound.beatVol = +e.target.value; save(); audio.setBeatVol(state.sound.beatVol / 100); renderSound(); });
 
   // ---------- offline ----------
   function setOfflineStatus(on, text) {

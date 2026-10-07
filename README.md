@@ -6,6 +6,7 @@ A Y2K-style decision helper with a memory. Works offline.
 - **Smart leans**: every tag has a slider for how often the ball says yes. *Snack* is strict (saves your money), *Talk to strangers* is encouraging.
 - **Your own feelings**: hand-drawn faces (no emoji). Create, change or delete them by picking color, shape, eyes, mouth and rosy cheeks.
 - **Simple or full**: in Settings → Layout, hide the tags and/or feelings to get just a question and a ball.
+- **Sounds**: tap the pink speaker button for forest birdsong and binaural beats (Sleep, Deep relax, Calm, Focus). Generated live in the app, so they work offline. Use headphones for binaural beats.
 - **Memory**: every question is saved with the date, the answer and how you felt. Mark if you did it and add notes.
 
 ## Using it offline

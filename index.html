@@ -265,10 +265,12 @@
   .sound-row button { min-width: 74px; }
   .sound-block select { margin-top: 10px; }
   .sound-block .lean output { min-width: 40px; }
-  main { padding-bottom: 100px; }
+  main { padding-bottom: 40px; }
   @media (prefers-reduced-motion: reduce) { .sound-fab.playing { animation: none; } }
 
-  footer { text-align: center; font-size: .72rem; letter-spacing: .3em; color: var(--ink-soft); padding-bottom: 24px; text-transform: uppercase; }
+  footer { text-align: center; font-size: .72rem; letter-spacing: .3em; color: var(--ink-soft); padding: 0 16px 96px; text-transform: uppercase; }
+  .credit { margin: 10px auto 0; max-width: 300px; font-size: .7rem; letter-spacing: .04em; text-transform: none; line-height: 1.5; }
+  .credit b { color: var(--pink); }
 
   @media (prefers-reduced-motion: reduce) {
     .ball.shake, .sparkle { animation: none; }
@@ -426,7 +428,10 @@
     </div>
   </section>
 </main>
-<footer>~ trust the ball ~</footer>
+<footer>
+  ~ trust the ball ~
+  <p class="credit">Vibe coded with <b>Claude</b>.<br>Idea and design and prompting by <b>Julie</b>.</p>
+</footer>
 
 <button class="gel pink sound-fab" id="soundFab" aria-label="Sounds" aria-expanded="false" aria-controls="soundPanel">
   <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
